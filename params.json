@@ -1,0 +1,6 @@
+{
+    "project_folder" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/",
+    "crisprcleanr_output" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/",
+    "lib_file_cleanR" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/new_lib.tsv",
+    "counts_file_cleanR" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/JEKO.txt"
+}
