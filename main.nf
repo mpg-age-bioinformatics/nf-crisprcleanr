@@ -210,6 +210,12 @@ Recall_scores <- ccr.VisDepAndSig(FCsprofile = geneMeanFCs,
   """
 }
 
+workflow images {
+  main:
+    get_images()
+}
+
+
 workflow cleanR_workflow {
     cleanR_pipe()
 }
