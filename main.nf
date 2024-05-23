@@ -45,14 +45,13 @@ process cleanR_pipe {
 
   script:
   """
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 library(CRISPRcleanR)
-library(xlsx)
+###library(xlsx)
 
-setwd("/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/count/")
+setwd("${params.project_folder}")
 
 library_file <- "${params.lib_file_cleanR}"
-###fn <- file.path(getwd(), "JEKO.txt", fsep="/")
 fn <- "${params.counts_file_cleanR}"
 
 #############################################
@@ -72,22 +71,28 @@ counts <- ccr.getCounts(file_counts = fn,
                     files_BAM_controls=NULL,
                     files_BAM_samples=NULL)
 
+write.table(counts, file = "${params.crisprcleanr_output}/raw_counts.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
+
 #"FUN": ["ccr.checkCounts"]
 #"desc": ["Check Library/Count data"]
-ccr.checkCounts(counts = counts, libraryAnnotation = lib, ncontrols = 2, min_reads = 30)
-
+####ccr.checkCounts(counts = counts, libraryAnnotation = lib, ncontrols = 2, min_reads = 30)
 ### add if statement here that if false do not proceed
 
 #"FUN": ["ccr.NormfoldChanges"]
 #"desc": ["Run Count normalization"]
 normCountsAndFCs <- ccr.NormfoldChanges(filename = fn, 
-                            display = TRUE,  ##for pipe set saveToFig=TRUE
+                            saveToFig=TRUE,
+                            display = TRUE,
                             method = 'ScalingByTotalReads', ## One of (ScalingByTotalReads, MedRatios)
                             ncontrols = 1,
                             libraryAnnotation = lib,
-                            EXPname = 'CRISPRcleanR',
+                            EXPname = '${params.label}',
                             min_reads = 30,
                             outdir = "${params.crisprcleanr_output}")
+
+write.table(normCountsAndFCs\$norm_counts, file="${params.crisprcleanr_output}/count_norm.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
+write.table(normCountsAndFCs\$logFCs, file="${params.crisprcleanr_output}/logFCs.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
+
 
 #### CN correction
 
@@ -97,8 +102,8 @@ gwSortedFCs <- ccr.logFCs2chromPos(foldchanges = normCountsAndFCs\$logFCs, libra
 
 # "FUN": ["ccr.GWclean"]
 #"desc": ["Run sgRNA Sorting"]
-correctedFCs <- ccr.GWclean(gwSortedFCs = gwSortedFCs ,label='CRISPRcleanR',display=TRUE,
-                        saveTO="${params.crisprcleanr_output}", ### set path in pipe
+correctedFCs <- ccr.GWclean(gwSortedFCs = gwSortedFCs ,label='${params.label}',display=TRUE,
+                        saveTO="${params.crisprcleanr_output}",
                         ignoredGenes=NULL,
                         min.ngenes=3,
                         alpha = 0.01,
@@ -111,17 +116,28 @@ correctedFCs <- ccr.GWclean(gwSortedFCs = gwSortedFCs ,label='CRISPRcleanR',disp
                         trim = 0.025,
                         undo.splits = "none",
                         undo.prune=0.05, 
-                        undo.SD=3)
+                        undo.SD=3,
+                        return.segments.unadj = TRUE,
+                        return.segments.adj = TRUE)
+
+write.table(correctedFCs\$segments, file="${params.crisprcleanr_output}/segments.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
+write.table(correctedFCs\$segments_adj, file="${params.crisprcleanr_output}/segments_adj.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
+write.table(correctedFCs\$corrected_logFCs, "${params.crisprcleanr_output}/logFCs_adj.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
+
 
 #"FUN": ["ccr.correctCounts"]
 #"desc": ["Correct counts"]
-correctedCounts <- ccr.correctCounts(CL = 'CRISPRcleanR',
+correctedCounts <- ccr.correctCounts(CL = '${params.label}',
                                 normalised_counts = normCountsAndFCs\$norm_counts,
                                 correctedFCs_and_segments = correctedFCs,
                                 libraryAnnotation = lib,
                                 minTargetedGenes=3,
                                 OutDir="${params.crisprcleanr_output}",
                                 ncontrols=1)
+
+write.table(correctedCounts, file="${params.crisprcleanr_output}/counts_corrected.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
+
+
 
 #"FUN": ["ccr.sgRNAmeanFCs"]
 #"desc": ["Get corrected FCs by probe"]
@@ -136,6 +152,7 @@ geneMeanFCs <- ccr.geneMeanFCs(sgRNA_FCprofile = sgRNAmeanFCs, libraryAnnotation
 geneSummary <- ccr.geneSummary(sgRNA_FCprofile = sgRNAmeanFCs,
                         libraryAnnotation = lib,
                         FDRth=0.05)
+write.table(geneSummary, file="${params.crisprcleanr_output}/gene_summary.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
 
 data("BAGEL_essential")
 data("BAGEL_nonEssential")
@@ -145,41 +162,48 @@ BAGEL_nonEssential_sgRNAs <- ccr.genes2sgRNAs(libraryAnnotation = lib,BAGEL_nonE
 
 #"FUN": ["ccr.ROC_Curve"]
 #"desc": ["ROC curve at sgRNA level"]
+pdf(paste0("${params.crisprcleanr_output}/ROC_by_sgRNA.pdf"), width = 10, height = 10)
 sgRNA_level_ROC <- ccr.ROC_Curve(FCsprofile = sgRNAmeanFCs, 
                             positives = BAGEL_essential_sgRNAs,
                             negatives = BAGEL_nonEssential_sgRNAs,
                             display = TRUE,
                             FDRth = 0.05,
-                            expName = 'CRISPRcleanR')
-
+                            expName = '${params.label}')
+dev.off()
 
 #"FUN": ["ccr.ROC_Curve"]
 #"desc": ["ROC curve at gene level"]
+pdf(paste0("${params.crisprcleanr_output}/ROC_by_gene.pdf"), width = 10, height = 10)
 gene_level_ROC <- ccr.ROC_Curve(FCsprofile = geneMeanFCs,
                         positives = BAGEL_essential,
                         negatives = BAGEL_nonEssential,
                         display = TRUE,
                         FDRth = 0.05,
-                        expName = 'CRISPRcleanR')
-                        
+                        expName = '${params.label}')
+dev.off()                 
 
 #"FUN": ["ccr.PrRc_Curve"]
 #"desc": ["PrRc curve at sgRNA level"]
+pdf(paste0("${params.crisprcleanr_output}/PrRc_by_sgRNA.pdf"), width = 10, height = 10)
 sgRNA_level_PrRc <- ccr.PrRc_Curve(FCsprofile = sgRNAmeanFCs,
                             positives = BAGEL_essential_sgRNAs,
                             negatives = BAGEL_nonEssential_sgRNAs,
                             display = TRUE,
                             FDRth = 0.05,
-                            expName = "CRISPRcleanR")
+                            expName = "${params.label}")
+dev.off()
 
 #"FUN": ["ccr.PrRc_Curve"]
 #"desc": ["PrRc curve at gene level"]
+pdf(paste0("${params.crisprcleanr_output}/PrRc_by_gene.pdf"), width = 10, height = 10)
 gene_level_PrRc<-ccr.PrRc_Curve(FCsprofile = geneMeanFCs,
                             positives = BAGEL_essential,
                             negatives = BAGEL_nonEssential,
                             display = TRUE,
                             FDRth = 0.05,
-                            expName = "CRISPRcleanR")
+                            expName = "${params.label}")
+dev.off()
+
 
 #"FUN": ["ccr.VisDepAndSig"]
 #"desc": ["Visialize dependecy by gene signatures"]
@@ -198,13 +222,17 @@ SIGNATURES <- list(Ribosomal_Proteins=EssGenes.ribosomalProteins,
             CFE = BAGEL_essential,
             non_essential = BAGEL_nonEssential)
 
+pdf(paste0("${params.crisprcleanr_output}/gene_signatures.pdf"), width = 10, height = 10)
 Recall_scores <- ccr.VisDepAndSig(FCsprofile = geneMeanFCs,
                             SIGNATURES = SIGNATURES,
-                            TITLE = 'CRISPRcleanR',
+                            TITLE = '${params.label}',
                             pIs = 6,
                             nIs = 7,
                             th=0.05,
                             plotFCprofile=TRUE)
+dev.off()
+write.table(as.data.frame(Recall_scores), file="${params.crisprcleanr_output}/gene_signatures.tsv", sep="\\t", quote = FALSE, row.names = TRUE)
+
 
 
   """
