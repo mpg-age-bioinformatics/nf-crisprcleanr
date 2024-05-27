@@ -1,7 +1,9 @@
 {
     "project_folder" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/",
+    "samples_tsv" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/samples.tsv",
+    "mageck_counts_file" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/counts.count.txt",
     "crisprcleanr_output" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/out/",
     "lib_file_cleanR" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/new_lib.tsv",
     "counts_file_cleanR" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/JEKO.txt",
-    "label" : "JEKO"
+    "ncontrols" : 1
 }
