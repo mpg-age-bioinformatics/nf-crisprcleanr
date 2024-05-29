@@ -33,6 +33,34 @@ process get_images {
 
 }
 
+process lib_file {
+  stageInMode 'symlink'
+  stageOutMode 'move'
+
+  when:
+    ( ! file("${params.project_folder}/library_cleanR.tsv").exists() )
+
+  script:
+  """
+#!/usr/local/bin/python
+import pandas as pd
+import os
+
+print("Starting")
+import sys
+sys.stdout.flush()
+
+EXC=pd.ExcelFile("${params.reference_file}", engine="openpyxl")
+
+# process library information
+df=EXC.parse("library")
+df=df.dropna()
+df=df.rename(columns={"gene_ID":"GENES", "UID":"CODE"})
+df=df[["CODE","GENES","EXON","CHRM","STRAND","STARTpos","ENDpos","seq"]]
+df.to_csv("${params.project_folder}"+"/library_cleanR.tsv", sep="\\t", index=None)
+  """
+}
+
 process subsetting_counts_file{
   stageInMode 'symlink'
   stageOutMode 'move'
@@ -281,6 +309,9 @@ workflow images {
     get_images()
 }
 
+workflow lib_file_formatting {
+  lib_file()
+}
 
 workflow cleanR_workflow {
   if ( ! file("${params.crisprcleanr_output}").isDirectory() ) {
@@ -291,15 +322,15 @@ workflow cleanR_workflow {
   rows=rows.filter{ ! file( "${params.crisprcleanr_output}//${it[0]}.gene_signatures.tsv" ).exists() }
   
   label=rows.flatMap { n -> n[0] }
-  // paired=rows.flatMap { n -> n[1] }
+
   control=rows.flatMap { n -> n[2] }
   control=control.map{ "$it".replace(".fastq.gz","") }
   treatment=rows.flatMap { n -> n[3] }
   treatment=treatment.map{ "$it".replace(".fastq.gz","") }
   
-  // subsetting_counts_file( label, control, treatment )
-  // cleanR_pipe( subsetting_counts_file.out.collect() , control, treatment )
+  subsetting_counts_file( label, control, treatment )
+  cleanR_pipe( subsetting_counts_file.out.collect() , control, treatment )
 
-  cleanR_pipe( label , control, treatment )
+  // cleanR_pipe( label , control, treatment )
 
 }
