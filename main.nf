@@ -310,7 +310,9 @@ workflow images {
 }
 
 workflow lib_file_formatting {
-  lib_file()
+  if ( 'cleanR_output' in params.keySet() ) {
+    lib_file()
+  } 
 }
 
 workflow cleanR_workflow {

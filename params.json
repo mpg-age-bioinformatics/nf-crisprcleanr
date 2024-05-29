@@ -1,9 +1,9 @@
 {
     "project_folder" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/",
+    "reference_file": "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/20240529.143038.wky8f704.crispr.xlsx",
     "samples_tsv" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/samples.tsv",
-    "mageck_counts_file" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/counts.count.txt",
-    "crisprcleanr_output" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/out/",
-    "lib_file_cleanR" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/new_lib.tsv",
-    "counts_file_cleanR" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/JEKO.txt",
+    "cleanR_input_mageck" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/counts.count.txt",
+    "cleanR_output" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/out/",
+    "cleanR_lib_file" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/new_lib.tsv",
     "ncontrols" : 1
 }
