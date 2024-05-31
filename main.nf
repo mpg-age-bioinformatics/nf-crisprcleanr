@@ -316,23 +316,25 @@ workflow lib_file_formatting {
 }
 
 workflow cleanR_workflow {
-  if ( ! file("${params.crisprcleanr_output}").isDirectory() ) {
-    file("${params.crisprcleanr_output}").mkdirs()
+  if ( 'cleanR_output' in params.keySet() ) {
+
+    if ( ! file("${params.cleanR_output}").isDirectory() ) {
+      file("${params.cleanR_output}").mkdirs()
+    }
+
+    rows=Channel.fromPath("${params.samples_tsv}", checkIfExists:true).splitCsv(sep:';')
+    rows=rows.filter{ ! file( "${params.cleanR_output}/${it[0]}.gene_signatures.tsv" ).exists() }
+    
+    label=rows.flatMap { n -> n[0] }
+
+    control=rows.flatMap { n -> n[2] }
+    control=control.map{ "$it".replace(".fastq.gz","") }
+    treatment=rows.flatMap { n -> n[3] }
+    treatment=treatment.map{ "$it".replace(".fastq.gz","") }
+    
+    subsetting_counts_file( label, control, treatment )
+    cleanR_pipe( subsetting_counts_file.out.collect() , control, treatment )
+
+    // cleanR_pipe( label , control, treatment )
   }
-
-  rows=Channel.fromPath("${params.samples_tsv}", checkIfExists:true).splitCsv(sep:';')
-  rows=rows.filter{ ! file( "${params.crisprcleanr_output}//${it[0]}.gene_signatures.tsv" ).exists() }
-  
-  label=rows.flatMap { n -> n[0] }
-
-  control=rows.flatMap { n -> n[2] }
-  control=control.map{ "$it".replace(".fastq.gz","") }
-  treatment=rows.flatMap { n -> n[3] }
-  treatment=treatment.map{ "$it".replace(".fastq.gz","") }
-  
-  subsetting_counts_file( label, control, treatment )
-  cleanR_pipe( subsetting_counts_file.out.collect() , control, treatment )
-
-  // cleanR_pipe( label , control, treatment )
-
 }
