@@ -116,7 +116,7 @@ process cleanR_pipe {
 #!/usr/bin/env Rscript
 library(CRISPRcleanR)
 
-setwd("${params.cleanR_output}")
+setwd("${params.cleanR_output}/")
 
 library_file <- "${params.cleanR_lib_file}"
 fn <- "${params.cleanR_output}/${label}.counts.txt"
@@ -155,7 +155,7 @@ normCountsAndFCs <- ccr.NormfoldChanges(filename = fn,
                             libraryAnnotation = lib,
                             EXPname = '${label}',
                             min_reads = 30,
-                            outdir = "${params.cleanR_output}")
+                            outdir = "${params.cleanR_output}/")
 
 write.table(normCountsAndFCs\$norm_counts, file="${params.cleanR_output}/${label}.count_norm.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
 write.table(normCountsAndFCs\$logFCs, file="${params.cleanR_output}/${label}.logFCs.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
@@ -170,7 +170,7 @@ gwSortedFCs <- ccr.logFCs2chromPos(foldchanges = normCountsAndFCs\$logFCs, libra
 # "FUN": ["ccr.GWclean"]
 #"desc": ["Run sgRNA Sorting"]
 correctedFCs <- ccr.GWclean(gwSortedFCs = gwSortedFCs ,label='${label}',display=TRUE,
-                        saveTO="${params.cleanR_output}",
+                        saveTO="${params.cleanR_output}/",
                         ignoredGenes=NULL,
                         min.ngenes=3,
                         alpha = 0.01,
@@ -199,7 +199,7 @@ correctedCounts <- ccr.correctCounts(CL = '${label}',
                                 correctedFCs_and_segments = correctedFCs,
                                 libraryAnnotation = lib,
                                 minTargetedGenes=3,
-                                OutDir="${params.cleanR_output}",
+                                OutDir="${params.cleanR_output}/",
                                 ncontrols=${params.cleanR_control_reps})
 
 write.table(correctedCounts, file="${params.cleanR_output}/${label}.counts_corrected.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
@@ -336,6 +336,5 @@ workflow cleanR_workflow {
     subsetting_counts_file( label, control, treatment )
     cleanR_pipe( label, control, treatment, subsetting_counts_file.out.collect() )
 
-    // cleanR_pipe( label , control, treatment )
   }
 }
