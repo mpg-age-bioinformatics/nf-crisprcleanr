@@ -106,6 +106,7 @@ process cleanR_pipe {
     val label
     val control
     val treatment
+    val out
 
   when:
     ( ! file("${params.cleanR_output}/${label}.gene_signatures.tsv").exists() )
@@ -150,7 +151,7 @@ normCountsAndFCs <- ccr.NormfoldChanges(filename = fn,
                             saveToFig=TRUE,
                             display = TRUE,
                             method = 'ScalingByTotalReads', ## One of (ScalingByTotalReads, MedRatios)
-                            ncontrols = ${params.ncontrols},
+                            ncontrols = ${params.cleanR_control_reps},
                             libraryAnnotation = lib,
                             EXPname = '${label}',
                             min_reads = 30,
@@ -188,7 +189,7 @@ correctedFCs <- ccr.GWclean(gwSortedFCs = gwSortedFCs ,label='${label}',display=
 
 write.table(correctedFCs\$segments, file="${params.cleanR_output}/${label}.segments.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
 write.table(correctedFCs\$segments_adj, file="${params.cleanR_output}/${label}.segments_adj.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
-write.table(correctedFCs\$corrected_logFCs, "${params.ccleanR_output}/${label}.logFCs_adj.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
+write.table(correctedFCs\$corrected_logFCs, "${params.cleanR_output}/${label}.logFCs_adj.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
 
 
 #"FUN": ["ccr.correctCounts"]
@@ -199,7 +200,7 @@ correctedCounts <- ccr.correctCounts(CL = '${label}',
                                 libraryAnnotation = lib,
                                 minTargetedGenes=3,
                                 OutDir="${params.cleanR_output}",
-                                ncontrols=${params.ncontrols})
+                                ncontrols=${params.cleanR_control_reps})
 
 write.table(correctedCounts, file="${params.cleanR_output}/${label}.counts_corrected.tsv", sep="\\t", quote = FALSE, row.names = FALSE)
 
@@ -333,7 +334,7 @@ workflow cleanR_workflow {
     treatment=treatment.map{ "$it".replace(".fastq.gz","") }
     
     subsetting_counts_file( label, control, treatment )
-    cleanR_pipe( subsetting_counts_file.out.collect() , control, treatment )
+    cleanR_pipe( label, control, treatment, subsetting_counts_file.out.collect() )
 
     // cleanR_pipe( label , control, treatment )
   }
