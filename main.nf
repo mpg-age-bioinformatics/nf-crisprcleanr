@@ -15,6 +15,11 @@ process get_images {
 
         cd ${params.image_folder}
 
+        if [[ ! -f rnaseq.python-3.8-4.sif ]] ;
+          then
+            singularity pull rnaseq.python-3.8-4.sif docker://index.docker.io/mpgagebioinformatics/rnaseq.python:3.8-4
+        fi
+
         if [[ ! -f crisprcleanr-3.0.0.sif ]] ;
           then
             singularity pull crisprcleanr-3.0.0.sif docker://index.docker.io/mpgagebioinformatics/crisprcleanr:3.0.0
@@ -26,6 +31,7 @@ process get_images {
     if [[ "${params.containers}" == "docker" ]] ; 
 
       then
+        docker pull mpgagebioinformatics/rnaseq.python:3.8-4
         docker pull mpgagebioinformatics/crisprcleanr:3.0.0
     fi
 
@@ -44,6 +50,7 @@ process lib_file {
   """
 #!/usr/local/bin/python
 import pandas as pd
+import numpy as np
 import os
 
 print("Starting")
@@ -54,9 +61,13 @@ EXC=pd.ExcelFile("${params.reference_file}", engine="openpyxl")
 
 # process library information
 df=EXC.parse("library")
-df=df.dropna()
+#df=df.dropna()
 df=df.rename(columns={"gene_ID":"GENES", "UID":"CODE"})
 df=df[["CODE","GENES","EXON","CHRM","STRAND","STARTpos","ENDpos","seq"]]
+#df["STARTpos"]=df["STARTpos"].astype(int).astype(str)
+#df["ENDpos"]=df["ENDpos"].astype(int).astype(str)
+df["STARTpos"]=[str(int(s)) if str(s) != str(np.nan) else np.nan for s in df["STARTpos"]]
+df["ENDpos"]=[str(int(s)) if str(s) != str(np.nan) else np.nan for s in df["ENDpos"]]
 df.to_csv("${params.project_folder}"+"/library_cleanR.tsv", sep="\\t", index=None)
   """
 }
@@ -118,7 +129,9 @@ library(CRISPRcleanR)
 
 setwd("${params.cleanR_output}/")
 
-library_file <- "${params.cleanR_lib_file}"
+###library_file <- "${params.cleanR_lib_file}"
+
+library_file <- "${params.project_folder}/library_cleanR.tsv"
 fn <- "${params.cleanR_output}/${label}.counts.txt"
 
 #############################################

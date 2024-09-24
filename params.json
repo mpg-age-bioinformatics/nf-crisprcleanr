@@ -1,9 +1,8 @@
 {
-    "project_folder" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/",
-    "reference_file": "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/20240529.143038.wky8f704.crispr.xlsx",
-    "samples_tsv" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/samples.tsv",
-    "cleanR_input_mageck" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/counts.count.txt",
-    "cleanR_output" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/out/",
-    "cleanR_lib_file" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-cleanR-dev/input/new_lib.tsv",
+    "project_folder" : "/nexus/posix0/MAGE-flaski/service/projects/data/CRISPR_Screening/CS_main_pipe/cleanR_vbc_lib/",
+    "reference_file": "/nexus/posix0/MAGE-flaski/service/projects/data/CRISPR_Screening/CS_main_pipe/cleanR_vbc_lib/VBC_cleanR.xlsx",
+    "samples_tsv" : "/nexus/posix0/MAGE-flaski/service/projects/data/CRISPR_Screening/CS_main_pipe/cleanR_vbc_lib/samples.tsv",
+    "cleanR_input_mageck" : "/nexus/posix0/MAGE-flaski/service/projects/data/CRISPR_Screening/CS_main_pipe/cleanR_vbc_lib/count/counts.count.txt",
+    "cleanR_output" : "/nexus/posix0/MAGE-flaski/service/projects/data/CRISPR_Screening/CS_main_pipe/cleanR_vbc_lib/test_out/",
     "cleanR_control_reps" : 1
 }
